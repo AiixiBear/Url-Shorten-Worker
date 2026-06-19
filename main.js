@@ -1,20 +1,20 @@
-let res
+let res;
 
-let apiSrv = window.location.pathname
-let password_value = document.querySelector("#passwordText").value
+let apiSrv = window.location.pathname;
+let password_value = document.querySelector("#passwordText").value;
 // let apiSrv = "https://journal.crazypeace.workers.dev"
 // let password_value = "journaljournal"
 
 // 这是默认行为, 在不同的index.html中可以设置为不同的行为
 // This is default, you can define it to different funciton in different theme index.html
-let buildValueItemFunc = buildValueTxt
+let buildValueItemFunc = buildValueTxt;
 
 function shorturl() {
   if (document.querySelector("#longURL").value == "") {
-    alert("Url cannot be empty!")
-    return
+    alert("Url cannot be empty!");
+    return;
   }
-  
+
   // 短链中不能有空格
   // key can't have space in it
   document.getElementById('keyPhrase').value = document.getElementById('keyPhrase').value.replace(/\s/g, "-");
@@ -39,7 +39,7 @@ function shorturl() {
       // save to localStorage
       localStorage.setItem(keyPhrase, valueLongURL);
       // add to urlList on the page
-      addUrlToList(keyPhrase, valueLongURL)
+      addUrlToList(keyPhrase, valueLongURL);
 
       document.getElementById("result").innerHTML = window.location.protocol + "//" + window.location.host + "/" + res.key;
     } else {
@@ -55,7 +55,7 @@ function shorturl() {
     console.log(err);
     document.getElementById("addBtn").disabled = false;
     document.getElementById("addBtn").innerHTML = 'Shorten it';
-  })
+  });
 }
 
 function copyurl(id, attr) {
@@ -85,7 +85,7 @@ function copyurl(id, attr) {
     window.getSelection().removeAllRanges();
     // console.log('Copy success')
   } catch (e) {
-    console.log('Copy error')
+    console.log('Copy error');
   }
 
   if (attr) {
@@ -94,91 +94,98 @@ function copyurl(id, attr) {
   }
 }
 
-function loadUrlList() {
+/**
+ * 渲染 localStorage 中的網址清單到畫面上
+ * @param {boolean} forceAll - true 時忽略 #longURL 欄位內容，強制顯示全部
+ *   （用於「從伺服器同步」這類情境，避免被搜尋輸入框的殘留值濾掉）
+ */
+function loadUrlList(forceAll) {
   // 清空列表
-  let urlList = document.querySelector("#urlList")
+  let urlList = document.querySelector("#urlList");
   while (urlList.firstChild) {
-    urlList.removeChild(urlList.firstChild)
+    urlList.removeChild(urlList.firstChild);
   }
 
-  // 文本框中的长链接
-  let longUrl = document.querySelector("#longURL").value
-  // console.log(longUrl)
+  // 文本框中的长链接（搜尋關鍵字）
+  let longUrl = forceAll ? "" : document.querySelector("#longURL").value;
 
   // 遍历localStorage
-  let len = localStorage.length
-  // console.log(+len)
+  let len = localStorage.length;
+  let renderedCount = 0;
   for (; len > 0; len--) {
-    let keyShortURL = localStorage.key(len - 1)
-    let valueLongURL = localStorage.getItem(keyShortURL)
+    let keyShortURL = localStorage.key(len - 1);
+    let valueLongURL = localStorage.getItem(keyShortURL);
 
     // 如果长链接为空，加载所有的localStorage
     // If the long url textbox is empty, load all in localStorage
     // 如果长链接不为空，加载匹配的localStorage
     // If the long url textbox is not empty, only load matched item in localStorage
     if (longUrl == "" || (longUrl == valueLongURL)) {
-      addUrlToList(keyShortURL, valueLongURL)
+      addUrlToList(keyShortURL, valueLongURL);
+      renderedCount++;
     }
   }
+
+  return renderedCount;
 }
 
 function addUrlToList(shortUrl, longUrl) {
-  let urlList = document.querySelector("#urlList")
+  let urlList = document.querySelector("#urlList");
 
-  let child = document.createElement('div')
-  child.classList.add("mb-3", "list-group-item")
+  let child = document.createElement('div');
+  child.classList.add("mb-3", "list-group-item");
 
-  let keyItem = document.createElement('div')
-  keyItem.classList.add("input-group")
+  let keyItem = document.createElement('div');
+  keyItem.classList.add("input-group");
 
   // 删除按钮 Remove item button
-  let delBtn = document.createElement('button')
-  delBtn.setAttribute('type', 'button')  
-  delBtn.classList.add("btn", "btn-danger", "rounded-bottom-0")
-  delBtn.setAttribute('onclick', 'deleteShortUrl(\"' + shortUrl + '\")')
-  delBtn.setAttribute('id', 'delBtn-' + shortUrl)
-  delBtn.innerText = "X"
-  keyItem.appendChild(delBtn)
+  let delBtn = document.createElement('button');
+  delBtn.setAttribute('type', 'button');
+  delBtn.classList.add("btn", "btn-danger", "rounded-bottom-0");
+  delBtn.setAttribute('onclick', 'deleteShortUrl(\"' + shortUrl + '\")');
+  delBtn.setAttribute('id', 'delBtn-' + shortUrl);
+  delBtn.innerText = "X";
+  keyItem.appendChild(delBtn);
 
   // 查询访问次数按钮 Query visit times button
-  let qryCntBtn = document.createElement('button')
-  qryCntBtn.setAttribute('type', 'button')
-  qryCntBtn.classList.add("btn", "btn-info")
-  qryCntBtn.setAttribute('onclick', 'queryVisitCount(\"' + shortUrl + '\")')
-  qryCntBtn.setAttribute('id', 'qryCntBtn-' + shortUrl)
-  qryCntBtn.innerText = "?"
-  keyItem.appendChild(qryCntBtn)
+  let qryCntBtn = document.createElement('button');
+  qryCntBtn.setAttribute('type', 'button');
+  qryCntBtn.classList.add("btn", "btn-info");
+  qryCntBtn.setAttribute('onclick', 'queryVisitCount(\"' + shortUrl + '\")');
+  qryCntBtn.setAttribute('id', 'qryCntBtn-' + shortUrl);
+  qryCntBtn.innerText = "?";
+  keyItem.appendChild(qryCntBtn);
 
   // 短链接信息 Short url
-  let keyTxt = document.createElement('span')
-  keyTxt.classList.add("form-control", "rounded-bottom-0")
-  keyTxt.innerText = window.location.protocol + "//" + window.location.host + "/" + shortUrl
-  keyItem.appendChild(keyTxt)
+  let keyTxt = document.createElement('span');
+  keyTxt.classList.add("form-control", "rounded-bottom-0");
+  keyTxt.innerText = window.location.protocol + "//" + window.location.host + "/" + shortUrl;
+  keyItem.appendChild(keyTxt);
 
   // 显示二维码按钮
-  let qrcodeBtn = document.createElement('button')  
-  qrcodeBtn.setAttribute('type', 'button')
-  qrcodeBtn.classList.add("btn", "btn-info")
-  qrcodeBtn.setAttribute('onclick', 'buildQrcode(\"' + shortUrl + '\")')
-  qrcodeBtn.setAttribute('id', 'qrcodeBtn-' + shortUrl)
-  qrcodeBtn.innerText = "QR"
-  keyItem.appendChild(qrcodeBtn)
-  
-  child.appendChild(keyItem)
+  let qrcodeBtn = document.createElement('button');
+  qrcodeBtn.setAttribute('type', 'button');
+  qrcodeBtn.classList.add("btn", "btn-info");
+  qrcodeBtn.setAttribute('onclick', 'buildQrcode(\"' + shortUrl + '\")');
+  qrcodeBtn.setAttribute('id', 'qrcodeBtn-' + shortUrl);
+  qrcodeBtn.innerText = "QR";
+  keyItem.appendChild(qrcodeBtn);
 
-  // 插入一个二级码占位
+  child.appendChild(keyItem);
+
+  // 插入一个二维码占位
   let qrcodeItem = document.createElement('div');
-  qrcodeItem.setAttribute('id', 'qrcode-' + shortUrl)
-  child.appendChild(qrcodeItem)
+  qrcodeItem.setAttribute('id', 'qrcode-' + shortUrl);
+  child.appendChild(qrcodeItem);
 
   // 长链接信息 Long url
-  child.appendChild(buildValueItemFunc(longUrl))
+  child.appendChild(buildValueItemFunc(longUrl));
 
-  urlList.append(child)
+  urlList.append(child);
 }
 
 function clearLocalStorage() {
-  localStorage.clear()
+  localStorage.clear();
 }
 
 async function deleteShortUrl(delKeyPhrase) {
@@ -213,12 +220,12 @@ async function deleteShortUrl(delKeyPhrase) {
     // 成功删除 Succeed
     if (res.status == "200") {
       // 从localStorage中删除
-      localStorage.removeItem(delKeyPhrase)
+      localStorage.removeItem(delKeyPhrase);
 
-      // 加载localStorage
-      loadUrlList()
+      // 重新渲染清单（保留目前搜尋條件）
+      loadUrlList();
 
-      document.getElementById("result").innerHTML = "Delete Successful"
+      document.getElementById("result").innerHTML = "Delete Successful";
     } else {
       document.getElementById("result").innerHTML = res.error;
     }
@@ -230,7 +237,7 @@ async function deleteShortUrl(delKeyPhrase) {
   }).catch(function (err) {
     alert("Unknow error. Please retry!");
     console.log(err);
-  })
+  });
 }
 
 function queryVisitCount(qryKeyPhrase) {
@@ -252,6 +259,8 @@ function queryVisitCount(qryKeyPhrase) {
     if (res.status == "200") {
       document.getElementById("qryCntBtn-" + qryKeyPhrase).innerHTML = res.url;
     } else {
+      document.getElementById("qryCntBtn-" + qryKeyPhrase).disabled = false;
+      document.getElementById("qryCntBtn-" + qryKeyPhrase).innerText = "?";
       document.getElementById("result").innerHTML = res.error;
       // 弹出消息窗口 Popup the result
       var modal = new bootstrap.Modal(document.getElementById('resultModal'));
@@ -261,13 +270,15 @@ function queryVisitCount(qryKeyPhrase) {
   }).catch(function (err) {
     alert("Unknow error. Please retry!");
     console.log(err);
-  })
+    document.getElementById("qryCntBtn-" + qryKeyPhrase).disabled = false;
+    document.getElementById("qryCntBtn-" + qryKeyPhrase).innerText = "?";
+  });
 }
 
 function query1KV() {
   let qryKeyPhrase = document.getElementById("keyForQuery").value;
   if (qryKeyPhrase == "") {
-    return
+    return;
   }
 
   // 从KV中查询 Query from KV
@@ -288,7 +299,7 @@ function query1KV() {
       document.getElementById("longURL").dispatchEvent(new Event('input', {
         bubbles: true,
         cancelable: true,
-      }))
+      }));
     } else {
       document.getElementById("result").innerHTML = res.error;
       // 弹出消息窗口 Popup the result
@@ -299,35 +310,40 @@ function query1KV() {
   }).catch(function (err) {
     alert("Unknow error. Please retry!");
     console.log(err);
-  })
+  });
 }
 
 function loadKV() {
-  //清空本地存储
-  clearLocalStorage(); 
+  let btn = document.getElementById("loadKV2localStgBtn");
+  let originalLabel = btn ? btn.innerHTML : null;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+  }
 
   // 从KV中查询, cmd为 "qryall", 查询全部
   fetch(apiSrv, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cmd: "qryall", password: password_value })
-  }).then(function (response) {    
+  }).then(function (response) {
     return response.json();
   }).then(function (myJson) {
     res = myJson;
     // 成功查询 Succeed
     if (res.status == "200") {
 
-      // 遍历kvlist
-      res.kvlist.forEach(item => {      
-        keyPhrase = item.key;
-        valueLongURL = item.value;
-        // save to localStorage
-        localStorage.setItem(keyPhrase, valueLongURL);  
+      // 先清空本地存储，避免殘留已被伺服器端刪除的舊資料
+      clearLocalStorage();
+
+      // 遍历kvlist，寫入 localStorage
+      res.kvlist.forEach(function (item) {
+        localStorage.setItem(item.key, item.value);
       });
 
-      // ★ 新增這一行：同步完 localStorage 後，重新渲染畫面
-      loadUrlList();
+      // 同步完成後，強制重新渲染全部清單
+      // 強制顯示全部，避免 #longURL 欄位殘留的搜尋字串把剛同步回來的資料濾掉
+      loadUrlList(true);
 
     } else {
       document.getElementById("result").innerHTML = res.error;
@@ -338,7 +354,12 @@ function loadKV() {
   }).catch(function (err) {
     alert("Unknow error. Please retry!");
     console.log(err);
-  })
+  }).finally(function () {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalLabel;
+    }
+  });
 }
 
 // 生成二维码
@@ -396,20 +417,20 @@ function buildQrcode(shortUrl) {
 
     image: null
   };
-  $("#qrcode-" + shortUrl.replace(/(:|\.|\[|\]|,|=|@)/g, "\\$1").replace(/(:|\#|\[|\]|,|=|@)/g, "\\$1") ).empty().qrcode(options);
+  $("#qrcode-" + shortUrl.replace(/(:|\.|\[|\]|,|=|@)/g, "\\$1").replace(/(:|\#|\[|\]|,|=|@)/g, "\\$1")).empty().qrcode(options);
 }
 
 function buildValueTxt(longUrl) {
-  let valueTxt = document.createElement('div')
-  valueTxt.classList.add("form-control", "rounded-top-0")
-  valueTxt.innerText = longUrl
-  return valueTxt
+  let valueTxt = document.createElement('div');
+  valueTxt.classList.add("form-control", "rounded-top-0");
+  valueTxt.innerText = longUrl;
+  return valueTxt;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+document.addEventListener('DOMContentLoaded', function () {
+  var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
   var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-    return new bootstrap.Popover(popoverTriggerEl)
+    return new bootstrap.Popover(popoverTriggerEl);
   });
 
   loadUrlList();
