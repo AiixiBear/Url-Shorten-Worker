@@ -1,103 +1,125 @@
 <!doctype html>
-<html>
+<html lang="zh-TW">
 <head>
   <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-  <title>Shorter URL</title>
-  <link rel="stylesheet" href="https://crazypeace.github.io/Url-Shorten-Worker/styles.css">
+  <title>短網址工具</title>
+  <link rel="stylesheet" href="styles.css">
   <!-- 如果使用CDN资源就放开这一句, 把上面那一句注释掉
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/crazypeace/Url-Shorten-Worker/styles.css">
   -->
 </head>
 <body>
-  <div class="d-flex align-items-start flex-wrap">
-  <div class="card shadow m-3">
-    <h5 class="card-header">A URL Shortener created using free Cloudflare worker and KV</h5>
-    <div class="card-body">
-      <h5 class="card-title"> </h5>
+  <div class="page">
 
-      <div class="input-group mb-3">
-
-          <span class="input-group-text" id="basic-addon1">Long URL</span>
-
-        <input type="text" class="form-control" id="longURL" aria-describedby="basic-addon1" placeholder="Example: https://example.com/" oninput="loadUrlList()">
+    <!-- 頁首：品牌標記（長線變短線的隱喻） -->
+    <header class="page-header">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+          <line class="brand-line-long" x1="6" y1="16" x2="38" y2="16" />
+          <line class="brand-line-short" x1="14" y1="28" x2="30" y2="28" />
+        </svg>
+      </span>
+      <div>
+        <div class="page-title">短網址工具</div>
+        <div class="page-subtitle">由 Cloudflare Worker 與 KV 提供服務</div>
       </div>
+    </header>
 
-      <div class="input-group mb-3">
+    <div class="grid">
 
-          <span class="input-group-text" id="basic-addon2">Custom Short URL</span>
+      <!-- 建立短網址 -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-header-title">建立短網址</div>
+          <div class="card-header-desc">貼上完整網址，立即產生短連結</div>
+        </div>
+        <div class="card-body">
 
-        <input type="text" class="form-control" id="keyPhrase" aria-describedby="basic-addon2" placeholder="As you wish">
-      </div>
+          <div class="field">
+            <label class="field-label" for="longURL">原始網址</label>
+            <input type="text" class="form-control" id="longURL" placeholder="例如：https://example.com/" oninput="loadUrlList()">
+          </div>
 
-      <div class="input-group mb-3">
-        <button class="btn btn-primary" type="button" onclick='shorturl()' id="addBtn">Shorten it</button>
-      </div>
+          <div class="field">
+            <label class="field-label" for="keyPhrase">自訂短網址代碼（選填）</label>
+            <input type="text" class="form-control" id="keyPhrase" placeholder="留空則自動產生">
+          </div>
 
-      <div class="input-group mb-3">
+          <div class="field">
+            <button class="btn btn-primary" type="button" onclick='shorturl()' id="addBtn">產生短網址</button>
+          </div>
 
-          <span class="input-group-text" id="basic-addon3">password</span>
-
-        <input class="form-control" type="text" value="__PASSWORD__" readonly="true" id="passwordText" aria-describedby="basic-addon3">
-      </div>
-
-    </div>
-    
-    <div class="card-footer">
-      <span> <a href="https://github.com/crazypeace/Url-Shorten-Worker/" target="_self">Fork me on GitHub</a> </span>
-    </div>
-  </div>
-
-  <div class="card shadow m-3">
-    <h5 class="card-header">LocalStorage List</h5>
-    <div class="card-body">
-      <h5 class="card-title"> </h5>
-      <div class="input-group mb-3">
-        <button class="btn btn-success" type="button" onclick='loadUrlList()' id="loadListBtn">load localStorage</button>
-        <button class="btn btn-danger" type="button" onclick='clearLocalStorage()' id="clearlocalStgBtn">clear localStorage</button>
-        <button class="btn btn-info" type="button" onclick='loadKV()' id="loadKV2localStgBtn">load KV to localStorage</button>
-      </div>
-
-      <div class="card-text">
-        <div classs="list-group" id="urlList">
-          <div class="mb-3 list-group-item">
-            <div class="input-group">
-              <button type="button" class="btn btn-danger" onclick='deleteShortUrl("4sure")' id="delBtn-4sure">X</button>
-              <button type="button" class="btn btn-info" onclick='queryVisitCount("4sure")' id="qryCntBtn-4sure">?</button>
-              <span class="form-control">https://1way.eu.org/4sure</span>
+          <div class="field">
+            <label class="field-label" for="passwordText">管理密碼</label>
+            <div class="password-row">
+              <input class="form-control" type="text" value="__PASSWORD__" readonly="true" id="passwordText">
             </div>
-            <div class="form-control">
-              https://en.y2mate.is/s36/youtube-to-mp3.html
+            <p class="hint">此密碼用於刪除或查詢短網址，請妥善保存。</p>
+          </div>
+
+        </div>
+        <div class="card-footer">
+          <a href="https://github.com/crazypeace/Url-Shorten-Worker/" target="_self">在 GitHub 上查看原始碼</a>
+        </div>
+      </section>
+
+      <!-- 本機紀錄清單 -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-header-title">本機儲存清單</div>
+          <div class="card-header-desc">瀏覽器內保存的短網址紀錄</div>
+        </div>
+        <div class="card-body">
+
+          <div class="field btn-block-group">
+            <button class="btn btn-success" type="button" onclick='loadUrlList()' id="loadListBtn">重新載入</button>
+            <button class="btn btn-danger" type="button" onclick='clearLocalStorage()' id="clearlocalStgBtn">清空紀錄</button>
+            <button class="btn btn-info" type="button" onclick='loadKV()' id="loadKV2localStgBtn">從伺服器同步</button>
+          </div>
+
+          <div class="list-group" id="urlList">
+            <div class="list-group-item">
+              <div class="list-row">
+                <button type="button" class="btn btn-danger btn-icon" onclick='deleteShortUrl("4sure")' id="delBtn-4sure" aria-label="刪除此短網址" title="刪除">✕</button>
+                <button type="button" class="btn btn-info btn-icon" onclick='queryVisitCount("4sure")' id="qryCntBtn-4sure" aria-label="查詢造訪次數" title="查詢造訪次數">?</button>
+                <span class="form-control">https://1way.eu.org/4sure</span>
+              </div>
+              <div class="form-control list-row-target">
+                https://en.y2mate.is/s36/youtube-to-mp3.html
+              </div>
             </div>
           </div>
+
         </div>
-      </div>
+      </section>
+
     </div>
   </div>
-  </div>
 
+  <!-- 結果彈窗 -->
   <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="resultModalLabel">Result</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title" id="resultModalLabel">產生結果</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
         </div>
-        <div class="modal-body" id="result">No result</div>
+        <div class="modal-body" id="result">尚無結果</div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" onclick='copyurl("result")' data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="Copied!">Copy</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick='copyurl("result")' data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="已複製！">複製網址</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
         </div>
       </div>
     </div>
   </div>
-  
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/gh/lrsjng/jquery-qrcode@0.18.0/dist/jquery-qrcode.min.js" crossorigin="anonymous"></script>
 
-  <script src="https://crazypeace.github.io/Url-Shorten-Worker/main.js" crossorigin="anonymous"></script>
+  <script src="main.js" crossorigin="anonymous"></script>
   <!-- 如果使用CDN资源就放开这一句, 把上面那一句注释掉
     <script src="https://cdn.jsdelivr.net/gh/crazypeace/Url-Shorten-Worker/main.js" crossorigin="anonymous"></script>
   -->
