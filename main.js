@@ -326,6 +326,9 @@ function loadKV() {
         localStorage.setItem(keyPhrase, valueLongURL);  
       });
 
+      // ★ 新增這一行：同步完 localStorage 後，重新渲染畫面
+      loadUrlList();
+
     } else {
       document.getElementById("result").innerHTML = res.error;
       // 弹出消息窗口 Popup the result
