@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="zh-TW">
 <head>
-  <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="由 Cloudflare Worker 與 KV 驅動的短網址工具，支援自訂短碼、QR 碼與本機紀錄。">
+  <meta name="color-scheme" content="light dark">
+  <title>短網址工具 | Cloudflare Worker + KV</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-  <title>短網址工具</title>
   <link rel="stylesheet" href="https://ghpages.aiixi.cc/Url-Shorten-Worker/styles.css">
   <!-- 如果使用CDN资源就放开这一句, 把上面那一句注释掉
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/crazypeace/Url-Shorten-Worker/styles.css">
@@ -16,21 +18,21 @@
     <!-- 頁首：品牌標記（長線變短線的隱喻） -->
     <header class="page-header">
       <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" focusable="false">
           <line class="brand-line-long" x1="6" y1="16" x2="38" y2="16" />
           <line class="brand-line-short" x1="14" y1="28" x2="30" y2="28" />
         </svg>
       </span>
       <div>
-        <div class="page-title">短網址工具</div>
-        <div class="page-subtitle">由 Cloudflare Worker 與 KV 提供服務</div>
+        <h1 class="page-title">短網址工具</h1>
+        <p class="page-subtitle">由 Cloudflare Worker 與 KV 提供服務</p>
       </div>
     </header>
 
     <div class="grid">
 
       <!-- 建立短網址 -->
-      <section class="card">
+      <section class="card" aria-label="建立短網址">
         <div class="card-header">
           <div class="card-header-title">建立短網址</div>
           <div class="card-header-desc">貼上完整網址，立即產生短連結</div>
@@ -39,12 +41,30 @@
 
           <div class="field">
             <label class="field-label" for="longURL">原始網址</label>
-            <input type="text" class="form-control" id="longURL" placeholder="例如：https://example.com/" oninput="loadUrlList()">
+            <input
+              type="text"
+              class="form-control"
+              id="longURL"
+              placeholder="例如：https://example.com/"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              inputmode="url"
+              oninput="loadUrlList()">
           </div>
 
           <div class="field">
             <label class="field-label" for="keyPhrase">自訂短網址代碼（選填）</label>
-            <input type="text" class="form-control" id="keyPhrase" placeholder="留空則自動產生">
+            <input
+              type="text"
+              class="form-control"
+              id="keyPhrase"
+              placeholder="留空則自動產生"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false">
           </div>
 
           <div class="field">
@@ -54,26 +74,34 @@
           <div class="field">
             <label class="field-label" for="passwordText">管理密碼</label>
             <div class="password-row">
-              <input class="form-control" type="text" value="__PASSWORD__" readonly="true" id="passwordText">
+              <input
+                class="form-control"
+                type="text"
+                value="__PASSWORD__"
+                readonly
+                id="passwordText"
+                aria-describedby="passwordHint"
+                autocomplete="off"
+                spellcheck="false">
             </div>
-            <p class="hint">此密碼用於刪除或查詢短網址，請妥善保存。</p>
+            <p class="hint" id="passwordHint">此密碼用於刪除或查詢短網址，請妥善保存。</p>
           </div>
 
         </div>
         <div class="card-footer">
-          <a href="https://aiixi.cc" target="_self">Aiixi Bear</a>
+          <a href="https://aiixi.cc">Aiixi Bear</a>
         </div>
       </section>
 
       <!-- 本機紀錄清單 -->
-      <section class="card">
+      <section class="card" aria-label="本機儲存清單">
         <div class="card-header">
           <div class="card-header-title">本機儲存清單</div>
           <div class="card-header-desc">瀏覽器內保存的短網址紀錄</div>
         </div>
         <div class="card-body">
 
-          <div class="field btn-block-group">
+          <div class="field btn-block-group" role="group" aria-label="清單操作">
             <button class="btn btn-success" type="button" onclick='loadUrlList()' id="loadListBtn">重新載入</button>
             <button class="btn btn-danger" type="button" onclick='clearLocalStorage()' id="clearlocalStgBtn">清空紀錄</button>
             <button class="btn btn-info" type="button" onclick='loadKV()' id="loadKV2localStgBtn">從伺服器同步</button>
@@ -99,14 +127,14 @@
   </div>
 
   <!-- 結果彈窗 -->
-  <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="resultModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="resultModalLabel">產生結果</h5>
+          <h2 class="modal-title" id="resultModalLabel">產生結果</h2>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
         </div>
-        <div class="modal-body" id="result">尚無結果</div>
+        <div class="modal-body" id="result" aria-live="polite">尚無結果</div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" onclick='copyurl("result")' data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="已複製！">複製網址</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
